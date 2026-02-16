@@ -1,0 +1,310 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Jeu du Pendu — Choix du mode{% endblock %}
+
+{% block stylesheets %}
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --neon-cyan: #0ff;
+            --neon-magenta: #f0f;
+            --neon-pink: #ff2a6d;
+            --neon-yellow: #ffd300;
+            --dark-bg: #0a0a12;
+            --panel-bg: rgba(10, 10, 25, 0.85);
+            --grid-color: rgba(0, 255, 255, 0.03);
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--dark-bg);
+            color: #c8d6e5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.015) 2px, rgba(0,255,255,0.015) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 50px, var(--grid-color) 50px, var(--grid-color) 51px),
+                repeating-linear-gradient(0deg, transparent, transparent 50px, var(--grid-color) 50px, var(--grid-color) 51px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(transparent 50%, rgba(0,0,0,0.15) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: scanlines 0.1s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 4px; }
+        }
+
+        .container {
+            text-align: center;
+            max-width: 650px;
+            width: 100%;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 255, 255, 0.15);
+            border-radius: 4px;
+            box-shadow:
+                0 0 30px rgba(0, 255, 255, 0.07),
+                inset 0 0 30px rgba(0, 255, 255, 0.03);
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px; right: -1px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), var(--neon-cyan), transparent);
+            border-radius: 4px 4px 0 0;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3rem;
+            color: var(--neon-cyan);
+            text-shadow:
+                0 0 7px var(--neon-cyan),
+                0 0 20px var(--neon-cyan),
+                0 0 40px rgba(0, 255, 255, 0.4);
+            animation: glitch-title 4s infinite;
+        }
+
+        @keyframes glitch-title {
+            0%, 92%, 100% { text-shadow: 0 0 7px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px rgba(0,255,255,0.4); }
+            93% { text-shadow: -3px 0 var(--neon-magenta), 3px 0 var(--neon-cyan), 0 0 20px var(--neon-cyan); }
+            94% { text-shadow: 3px 0 var(--neon-magenta), -3px 0 var(--neon-cyan), 0 0 20px var(--neon-magenta); }
+            95% { text-shadow: 0 0 7px var(--neon-cyan), 0 0 20px var(--neon-cyan), 0 0 40px rgba(0,255,255,0.4); }
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            color: #334;
+            letter-spacing: 0.3rem;
+            text-transform: uppercase;
+            margin-bottom: 2.5rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .modes {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mode-card {
+            flex: 1;
+            min-width: 220px;
+            max-width: 280px;
+            padding: 2rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mode-card .mode-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15rem;
+        }
+
+        .mode-card .mode-desc {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            opacity: 0.8;
+        }
+
+        /* Normal mode - cyan */
+        .mode-normal {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            color: var(--neon-cyan);
+        }
+        .mode-normal .mode-title {
+            text-shadow: 0 0 6px var(--neon-cyan);
+        }
+        .mode-normal:hover {
+            background: rgba(0, 255, 255, 0.12);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3), inset 0 0 25px rgba(0, 255, 255, 0.08);
+            transform: translateY(-4px);
+        }
+
+        /* Evil mode - neon pink */
+        .mode-evil {
+            background: rgba(255, 42, 109, 0.05);
+            border: 1px solid rgba(255, 42, 109, 0.25);
+            color: var(--neon-pink);
+        }
+        .mode-evil .mode-title {
+            text-shadow: 0 0 6px var(--neon-pink);
+        }
+        .mode-evil:hover {
+            background: rgba(255, 42, 109, 0.12);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 25px rgba(255, 42, 109, 0.3), inset 0 0 25px rgba(255, 42, 109, 0.08);
+            transform: translateY(-4px);
+        }
+
+        /* In-progress games section */
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15rem;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 6px var(--neon-yellow);
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .games-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .game-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1.2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+
+        .game-row:hover {
+            transform: translateX(4px);
+        }
+
+        .game-row-normal {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            color: var(--neon-cyan);
+        }
+        .game-row-normal:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        .game-row-evil {
+            background: rgba(255, 42, 109, 0.05);
+            border: 1px solid rgba(255, 42, 109, 0.2);
+            color: var(--neon-pink);
+        }
+        .game-row-evil:hover {
+            background: rgba(255, 42, 109, 0.1);
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 42, 109, 0.2);
+        }
+
+        .game-mode-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 2px;
+            min-width: 3.5rem;
+            text-align: center;
+        }
+
+        .game-row-normal .game-mode-tag {
+            background: rgba(0, 255, 255, 0.15);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .game-row-evil .game-mode-tag {
+            background: rgba(255, 42, 109, 0.15);
+            border: 1px solid rgba(255, 42, 109, 0.3);
+        }
+
+        .game-word {
+            font-size: 1.1rem;
+            letter-spacing: 0.3rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .game-tries {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            white-space: nowrap;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Jeu du Pendu</h1>
+        <p class="subtitle">// Selectionnez votre mode</p>
+
+        <div class="modes">
+            <form method="post" action="{{ path('app_game_start') }}">
+                <input type="hidden" name="mode" value="normal">
+                <button type="submit" class="mode-card mode-normal">
+                    <span class="mode-title">Mode Normal</span>
+                    <span class="mode-desc">Le systeme choisit un mot au hasard. Trouvez-le avant de perdre tous vos essais.</span>
+                </button>
+            </form>
+
+            <form method="post" action="{{ path('app_game_start') }}">
+                <input type="hidden" name="mode" value="evil">
+                <button type="submit" class="mode-card mode-evil">
+                    <span class="mode-title">Mode Diabolique</span>
+                    <span class="mode-desc">Le systeme triche. Il change de mot a chaque tour pour maximiser vos echecs.</span>
+                </button>
+            </form>
+        </div>
+
+        {% if games is not empty %}
+            <p class="section-title">// Reprendre une partie</p>
+            <div class="games-list">
+                {% for game in games %}
+                    <a href="{{ path('app_game_resume', {id: game.id}) }}"
+                       class="game-row {{ game.evil ? 'game-row-evil' : 'game-row-normal' }}">
+                        <span class="game-mode-tag">{{ game.evil ? 'EVIL' : 'STD' }}</span>
+                        <span class="game-word">{{ game.maskedWord }}</span>
+                        <span class="game-tries">{{ game.tries }}/{{ game.maxTries }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
