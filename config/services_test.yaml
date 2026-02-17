@@ -1,0 +1,6 @@
+services:
+    App\Domain\Interface\GameRepositoryInterface:
+        alias: App\Infrastructure\Repository\InMemoryGameRepository
+
+    App\Domain\Interface\DictionaryInterface:
+        alias: App\Infrastructure\Service\ConstantWordProvider
