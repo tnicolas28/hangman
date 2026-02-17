@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Entity;
 
-use App\Infrastructure\Entity\Trait\TimestampableTrait;
 use App\Domain\Enum\GameStatus;
+use App\Infrastructure\Entity\Trait\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
@@ -27,9 +29,11 @@ class GameEntity
     #[ORM\Column(length: 100)]
     private string $word;
 
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $guessedLetters = [];
 
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $usedLetters = [];
 
@@ -58,11 +62,13 @@ class GameEntity
         return $this->word;
     }
 
+    /** @return list<string> */
     public function getGuessedLetters(): array
     {
         return $this->guessedLetters;
     }
 
+    /** @return list<string> */
     public function getUsedLetters(): array
     {
         return $this->usedLetters;
@@ -83,11 +89,13 @@ class GameEntity
         return $this->status;
     }
 
+    /** @param list<string> $guessedLetters */
     public function setGuessedLetters(array $guessedLetters): void
     {
         $this->guessedLetters = $guessedLetters;
     }
 
+    /** @param list<string> $usedLetters */
     public function setUsedLetters(array $usedLetters): void
     {
         $this->usedLetters = $usedLetters;
@@ -101,5 +109,10 @@ class GameEntity
     public function setStatus(GameStatus $status): void
     {
         $this->status = $status;
+    }
+
+    public function setHintUsed(bool $hintUsed): void
+    {
+        $this->hintUsed = $hintUsed;
     }
 }

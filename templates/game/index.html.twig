@@ -333,13 +333,11 @@
                 </div>
             {% endif %}
 
-            {% if not game.evil %}
-                <form method="post" action="{{ path('app_game_hint') }}" style="display:block; margin-bottom: 0;">
-                    <button type="submit" class="hint-btn" {% if game.hintUsage %}disabled{% endif %}>
-                        {{ game.hintUsage ? '// Indice utilisé' : '? Indice' }}
-                    </button>
-                </form>
-            {% endif %}
+            <form method="post" action="{{ path('app_game_hint') }}" style="display:block; margin-bottom: 0;">
+                <button type="submit" class="hint-btn" {% if game.hintUsage %}disabled{% endif %}>
+                    {{ game.hintUsage ? '// Indice utilisé' : '? Indice' }}
+                </button>
+            </form>
 
             <div class="keyboard">
                 {% for letter in 'a'..'z' %}

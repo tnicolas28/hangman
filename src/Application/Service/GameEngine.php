@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Service;
 
 use App\Domain\Interface\DictionaryInterface;
 use App\Domain\Interface\GameInterface;
+use App\Domain\Interface\GameNotifierInterface;
 use App\Domain\Interface\GameRepositoryInterface;
 use App\Domain\Model\EvilGame;
 use App\Domain\Model\Game;
@@ -16,13 +19,15 @@ class GameEngine
     public function __construct(
         private DictionaryInterface $dictionary,
         private GameRepositoryInterface $gameRepository,
-    ){}
+        private GameNotifierInterface $notifier,
+    ) {
+    }
 
     public function createGame(string $mode): GameInterface
     {
-        if ($mode === 'evil') {
+        if ('evil' === $mode) {
             $word = $this->dictionary->getRandomWord();
-            $candidates = $this->dictionary->getWordsByLength(mb_strlen($word));
+            $candidates = $this->dictionary->getWordsByLength(\mb_strlen($word));
             $game = new EvilGame($candidates, self::MAX_TRIES);
         } else {
             $word = $this->dictionary->getRandomWord();
@@ -34,6 +39,7 @@ class GameEngine
         return $game;
     }
 
+    /** @return list<GameInterface> */
     public function getInProgressGames(): array
     {
         return $this->gameRepository->findInProgress();
@@ -46,8 +52,12 @@ class GameEngine
 
     public function guess(GameInterface $game, string $letter): void
     {
-        $game->guess(strtolower($letter[0]));
+        $game->guess(\strtolower($letter[0]));
         $this->gameRepository->save($game);
+
+        if ($game->won() || $game->lost()) {
+            $this->notifier->notifyGameFinished($game);
+        }
     }
 
     public function useHint(GameInterface $game): void

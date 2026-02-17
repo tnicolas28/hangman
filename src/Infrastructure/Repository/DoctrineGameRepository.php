@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Repository;
 
-use App\Infrastructure\Entity\EvilGameEntity;
-use App\Infrastructure\Entity\GameEntity;
+use App\Domain\Enum\GameStatus;
 use App\Domain\Interface\GameInterface;
 use App\Domain\Interface\GameRepositoryInterface;
 use App\Domain\Model\EvilGame;
 use App\Domain\Model\Game;
-use App\Domain\Enum\GameStatus;
+use App\Infrastructure\Entity\EvilGameEntity;
+use App\Infrastructure\Entity\GameEntity;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Uid\Uuid;
@@ -17,33 +19,35 @@ use Symfony\Component\Uid\Uuid;
 class DoctrineGameRepository implements GameRepositoryInterface
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
-    ){}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     public function find(Uuid $id): ?GameInterface
     {
         $entity = $this->entityManager->find(GameEntity::class, $id);
 
-        if ($entity === null) {
+        if (null === $entity) {
             return null;
         }
 
         return $this->entityToModel($entity);
     }
 
+    /** @return list<GameInterface> */
     public function findInProgress(): array
     {
         $entities = $this->entityManager->getRepository(GameEntity::class)
             ->findBy(['status' => GameStatus::Playing], ['createdAt' => 'DESC']);
 
-        return array_map(fn(GameEntity $entity) => $this->entityToModel($entity), $entities);
+        return \array_map(fn (GameEntity $entity) => $this->entityToModel($entity), $entities);
     }
 
     public function save(GameInterface $game): void
     {
         $entity = $this->entityManager->find(GameEntity::class, $game->getId());
 
-        if ($entity === null) {
+        if (null === $entity) {
             $entity = $this->modelToNewEntity($game);
             $this->entityManager->persist($entity);
         } else {
@@ -61,6 +65,7 @@ class DoctrineGameRepository implements GameRepositoryInterface
                 guessedLetters: $entity->getGuessedLetters(),
                 usedLetters: $entity->getUsedLetters(),
                 tries: $entity->getTries(),
+                hintUsed: $entity->getHintUsage(),
                 id: $entity->getId(),
             );
         }
@@ -94,6 +99,7 @@ class DoctrineGameRepository implements GameRepositoryInterface
         $entity->setUsedLetters($game->getUsedLetters());
         $entity->setTries($game->getTries());
         $entity->setStatus($game->getStatus());
+        $entity->setHintUsed($game->getHintUsage());
 
         if ($entity instanceof EvilGameEntity && $game instanceof EvilGame) {
             $entity->setCandidates($game->getCandidates());

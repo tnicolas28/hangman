@@ -24,7 +24,7 @@ services:
 
     App\Infrastructure\Service\WordProvider:
         arguments:
-            $projectDir: '%kernel.project_dir%'
+            $filePath: '%kernel.project_dir%/data/words.txt'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

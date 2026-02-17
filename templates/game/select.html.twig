@@ -212,28 +212,6 @@
             transform: translateX(4px);
         }
 
-        .game-row-normal {
-            background: rgba(0, 255, 255, 0.05);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            color: var(--neon-cyan);
-        }
-        .game-row-normal:hover {
-            background: rgba(0, 255, 255, 0.1);
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-        }
-
-        .game-row-evil {
-            background: rgba(255, 42, 109, 0.05);
-            border: 1px solid rgba(255, 42, 109, 0.2);
-            color: var(--neon-pink);
-        }
-        .game-row-evil:hover {
-            background: rgba(255, 42, 109, 0.1);
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 15px rgba(255, 42, 109, 0.2);
-        }
-
         .game-mode-tag {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.65rem;
@@ -276,21 +254,17 @@
         <p class="subtitle">// Selectionnez votre mode</p>
 
         <div class="modes">
-            <form method="post" action="{{ path('app_game_start') }}">
-                <input type="hidden" name="mode" value="normal">
-                <button type="submit" class="mode-card mode-normal">
+            {{ form_start(startForm) }}
+                <button type="submit" name="{{ field_name(startForm.normal) }}" class="mode-card mode-normal">
                     <span class="mode-title">Mode Normal</span>
                     <span class="mode-desc">Le systeme choisit un mot au hasard. Trouvez-le avant de perdre tous vos essais.</span>
                 </button>
-            </form>
 
-            <form method="post" action="{{ path('app_game_start') }}">
-                <input type="hidden" name="mode" value="evil">
-                <button type="submit" class="mode-card mode-evil">
+                <button type="submit" name="{{ field_name(startForm.evil) }}" class="mode-card mode-evil">
                     <span class="mode-title">Mode Diabolique</span>
                     <span class="mode-desc">Le systeme triche. Il change de mot a chaque tour pour maximiser vos echecs.</span>
                 </button>
-            </form>
+            {{ form_end(startForm) }}
         </div>
 
         {% if games is not empty %}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Model;
 
 use App\Domain\Enum\GameStatus;
@@ -12,6 +14,10 @@ class Game implements GameInterface
 {
     private Uuid $id;
 
+    /**
+     * @param list<string> $guessedLetters
+     * @param list<string> $usedLetters
+     */
     public function __construct(
         private string $wordToGuess,
         private array $guessedLetters = [],
@@ -20,7 +26,7 @@ class Game implements GameInterface
         private int $maxTries = 6,
         private bool $hintUsed = false,
         ?Uuid $id = null,
-    ){
+    ) {
         $this->id = $id ?? Uuid::v7();
     }
 
@@ -52,24 +58,25 @@ class Game implements GameInterface
     public function getMaskedWord(): string
     {
         $masked = '';
-        foreach (str_split($this->wordToGuess) as $letter) {
-            $masked .= in_array($letter, $this->guessedLetters) ? $letter : '_';
+        foreach (\str_split($this->wordToGuess) as $letter) {
+            $masked .= \in_array($letter, $this->guessedLetters) ? $letter : '_';
         }
 
         return $masked;
     }
 
-    public function guess(string $letter): void {
-        //Si lettre déjà utilisée
-        if(in_array($letter, $this->guessedLetters) || in_array($letter, $this->usedLetters)) {
+    public function guess(string $letter): void
+    {
+        // Si lettre déjà utilisée
+        if (\in_array($letter, $this->guessedLetters) || \in_array($letter, $this->usedLetters)) {
             return;
         }
 
-        if(str_contains($this->wordToGuess, $letter)) {
+        if (\str_contains($this->wordToGuess, $letter)) {
             $this->guessedLetters[] = $letter;
         } else {
             $this->usedLetters[] = $letter;
-            $this->tries++;
+            ++$this->tries;
         }
     }
 
@@ -88,8 +95,7 @@ class Game implements GameInterface
 
     public function won(): bool
     {
-        return array_all(str_split($this->wordToGuess), fn($letter) => in_array($letter, $this->guessedLetters));
-
+        return \array_all(\str_split($this->wordToGuess), fn ($letter) => \in_array($letter, $this->guessedLetters));
     }
 
     public function lost(): bool
@@ -121,14 +127,14 @@ class Game implements GameInterface
         $this->hintUsed = true;
 
         $unguessedLetters = [];
-        foreach (str_split($this->wordToGuess) as $letter) {
-            if (!in_array($letter, $this->guessedLetters) && !in_array($letter, $unguessedLetters)) {
+        foreach (\str_split($this->wordToGuess) as $letter) {
+            if (!\in_array($letter, $this->guessedLetters) && !\in_array($letter, $unguessedLetters)) {
                 $unguessedLetters[] = $letter;
             }
         }
 
-        if ($unguessedLetters !== []) {
-            $this->guessedLetters[] = $unguessedLetters[array_rand($unguessedLetters)];
+        if ([] !== $unguessedLetters) {
+            $this->guessedLetters[] = $unguessedLetters[\array_rand($unguessedLetters)];
         }
     }
 }

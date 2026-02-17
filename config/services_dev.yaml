@@ -1,3 +1,3 @@
 services:
     App\Domain\Interface\DictionaryInterface:
-        alias: App\Infrastructure\Service\ConstantWordProvider
+        alias: App\Infrastructure\Service\WordProvider
