@@ -6,50 +6,35 @@ namespace App\Infrastructure\Entity;
 
 use App\Domain\Enum\GameStatus;
 use App\Infrastructure\Entity\Trait\TimestampableTrait;
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity]
-#[ORM\Table(name: 'games')]
-#[ORM\InheritanceType('JOINED')]
-#[ORM\DiscriminatorColumn(name: 'type', type: 'string')]
-#[ORM\DiscriminatorMap([
-    'standard' => GameEntity::class,
-    'evil' => EvilGameEntity::class,
-])]
-#[ORM\HasLifecycleCallbacks]
 class GameEntity
 {
     use TimestampableTrait;
 
-    #[ORM\Id]
-    #[ORM\Column(type: 'uuid')]
     private Uuid $id;
 
-    #[ORM\Column(length: 100)]
     private string $word;
 
     /** @var list<string> */
-    #[ORM\Column(type: 'json')]
     private array $guessedLetters = [];
 
     /** @var list<string> */
-    #[ORM\Column(type: 'json')]
     private array $usedLetters = [];
 
-    #[ORM\Column(type: 'integer')]
     private int $tries = 0;
 
-    #[ORM\Column(type: 'boolean')]
     private bool $hintUsed = false;
 
-    #[ORM\Column(enumType: GameStatus::class)]
     private GameStatus $status = GameStatus::Playing;
 
-    public function __construct(string $word = '', ?Uuid $id = null)
+    private \DateTimeImmutable $startedAt;
+
+    public function __construct(string $word = '', ?Uuid $id = null, ?\DateTimeImmutable $startedAt = null)
     {
         $this->id = $id ?? Uuid::v7();
         $this->word = $word;
+        $this->startedAt = $startedAt ?? new \DateTimeImmutable();
     }
 
     public function getId(): Uuid
@@ -114,5 +99,10 @@ class GameEntity
     public function setHintUsed(bool $hintUsed): void
     {
         $this->hintUsed = $hintUsed;
+    }
+
+    public function getStartedAt(): \DateTimeImmutable
+    {
+        return $this->startedAt;
     }
 }

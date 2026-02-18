@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Command;
 
-use App\Application\Service\GameEngine;
+use App\Application\Handler\CreateGameCommand;
+use App\Application\Handler\CreateGameHandler;
+use App\Application\Handler\GuessLetterCommand;
+use App\Application\Handler\GuessLetterHandler;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,7 +18,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class PlayHangmanCommand extends Command
 {
     public function __construct(
-        private readonly GameEngine $engine,
+        private readonly CreateGameHandler $createGameHandler,
+        private readonly GuessLetterHandler $guessLetterHandler,
     ) {
         parent::__construct();
     }
@@ -35,7 +39,7 @@ class PlayHangmanCommand extends Command
     {
         /** @var string $mode */
         $mode = $io->choice('Choisissez un mode', ['normal' => 'Mode Normal', 'evil' => 'Mode Diabolique'], 'normal');
-        $game = $this->engine->createGame($mode);
+        $game = ($this->createGameHandler)(new CreateGameCommand($mode));
 
         while (!$game->won() && !$game->lost()) {
             $io->writeln(\sprintf('Mot : %s    (essais : %d/%d)', $game->getMaskedWord(), $game->getTries(), $game->getMaxTries()));
@@ -50,7 +54,7 @@ class PlayHangmanCommand extends Command
                 continue;
             }
 
-            $this->engine->guess($game, $letter);
+            ($this->guessLetterHandler)(new GuessLetterCommand($game, $letter));
         }
 
         if ($game->won()) {

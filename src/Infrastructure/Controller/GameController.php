@@ -4,7 +4,15 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Controller;
 
-use App\Application\Service\GameEngine;
+use App\Application\Handler\CreateGameCommand;
+use App\Application\Handler\CreateGameHandler;
+use App\Application\Handler\GetInProgressGamesHandler;
+use App\Application\Handler\GuessLetterCommand;
+use App\Application\Handler\GuessLetterHandler;
+use App\Application\Handler\LoadGameCommand;
+use App\Application\Handler\LoadGameHandler;
+use App\Application\Handler\UseHintCommand;
+use App\Application\Handler\UseHintHandler;
 use App\Infrastructure\Form\StartGameFormType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\SubmitButton;
@@ -17,7 +25,11 @@ use Symfony\Component\Uid\Uuid;
 class GameController extends AbstractController
 {
     public function __construct(
-        private GameEngine $gameEngine,
+        private CreateGameHandler $createGameHandler,
+        private GetInProgressGamesHandler $getInProgressGamesHandler,
+        private LoadGameHandler $loadGameHandler,
+        private GuessLetterHandler $guessLetterHandler,
+        private UseHintHandler $useHintHandler,
     ) {
     }
 
@@ -31,15 +43,15 @@ class GameController extends AbstractController
             $evilButton = $form->get('evil');
             \assert($evilButton instanceof SubmitButton);
             $mode = $evilButton->isClicked() ? 'evil' : 'normal';
-            $game = $this->gameEngine->createGame($mode);
+            $game = ($this->createGameHandler)(new CreateGameCommand($mode));
 
-            $request->getSession()->set('game_id', (string) $game->getId());
+            $request->getSession()->set('game_id', (string) $game->id);
 
             return $this->redirectToRoute('app_game_play');
         }
 
         return $this->render('game/select.html.twig', [
-            'games' => $this->gameEngine->getInProgressGames(),
+            'games' => ($this->getInProgressGamesHandler)(),
             'startForm' => $form,
         ]);
     }
@@ -47,14 +59,13 @@ class GameController extends AbstractController
     #[Route('/resume/{id}', name: 'resume', methods: ['GET'])]
     public function resume(string $id, Request $request): Response
     {
-        $uuid = Uuid::fromString($id);
-        $game = $this->gameEngine->loadGame($uuid);
+        $game = ($this->loadGameHandler)(new LoadGameCommand(Uuid::fromString($id)));
 
         if (null === $game) {
             return $this->redirectToRoute('app_game_index');
         }
 
-        $request->getSession()->set('game_id', (string) $game->getId());
+        $request->getSession()->set('game_id', (string) $game->id);
 
         return $this->redirectToRoute('app_game_play');
     }
@@ -85,7 +96,7 @@ class GameController extends AbstractController
         $letter = $request->request->getString('letter');
 
         if ('' !== $letter) {
-            $this->gameEngine->guess($game, $letter);
+            ($this->guessLetterHandler)(new GuessLetterCommand($game, $letter));
         }
 
         return $this->redirectToRoute('app_game_play');
@@ -100,7 +111,7 @@ class GameController extends AbstractController
             return $this->redirectToRoute('app_game_index');
         }
 
-        $this->gameEngine->useHint($game);
+        ($this->useHintHandler)(new UseHintCommand($game));
 
         return $this->redirectToRoute('app_game_play');
     }
@@ -113,6 +124,6 @@ class GameController extends AbstractController
             return null;
         }
 
-        return $this->gameEngine->loadGame(Uuid::fromString($gameId));
+        return ($this->loadGameHandler)(new LoadGameCommand(Uuid::fromString($gameId)));
     }
 }

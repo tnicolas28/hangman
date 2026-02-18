@@ -45,7 +45,7 @@ class DoctrineGameRepository implements GameRepositoryInterface
 
     public function save(GameInterface $game): void
     {
-        $entity = $this->entityManager->find(GameEntity::class, $game->getId());
+        $entity = $this->entityManager->find(GameEntity::class, $game->id);
 
         if (null === $entity) {
             $entity = $this->modelToNewEntity($game);
@@ -61,7 +61,8 @@ class DoctrineGameRepository implements GameRepositoryInterface
     {
         if ($entity instanceof EvilGameEntity) {
             return new EvilGame(
-                $entity->getCandidates(),
+                candidates: $entity->getCandidates(),
+                startedAt: $entity->getStartedAt(),
                 guessedLetters: $entity->getGuessedLetters(),
                 usedLetters: $entity->getUsedLetters(),
                 tries: $entity->getTries(),
@@ -71,10 +72,11 @@ class DoctrineGameRepository implements GameRepositoryInterface
         }
 
         return new Game(
-            $entity->getWord(),
-            $entity->getGuessedLetters(),
-            $entity->getUsedLetters(),
-            $entity->getTries(),
+            wordToGuess: $entity->getWord(),
+            startedAt: $entity->getStartedAt(),
+            guessedLetters: $entity->getGuessedLetters(),
+            usedLetters: $entity->getUsedLetters(),
+            tries: $entity->getTries(),
             hintUsed: $entity->getHintUsage(),
             id: $entity->getId(),
         );
@@ -83,11 +85,11 @@ class DoctrineGameRepository implements GameRepositoryInterface
     private function modelToNewEntity(GameInterface $game): GameEntity
     {
         if ($game instanceof EvilGame) {
-            return new EvilGameEntity($game->getCandidates(), $game->getId());
+            return new EvilGameEntity($game->getCandidates(), $game->id, $game->getStartedAt());
         }
 
         if ($game instanceof Game) {
-            return new GameEntity($game->getWordToGuess(), $game->getId());
+            return new GameEntity($game->getWordToGuess(), $game->id, $game->getStartedAt());
         }
 
         throw new \InvalidArgumentException('Unknown game type');

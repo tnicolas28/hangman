@@ -19,19 +19,19 @@ class InMemoryGameRepositoryTest extends TestCase
 
     public function testSaveAndFind(): void
     {
-        $game = new Game('symfony');
+        $game = new Game('symfony', new \DateTimeImmutable());
         $this->repository->save($game);
 
-        $found = $this->repository->find($game->getId());
+        $found = $this->repository->find($game->id);
 
         $this->assertSame($game, $found);
     }
 
     public function testFindReturnsNullWhenNotFound(): void
     {
-        $game = new Game('symfony');
+        $game = new Game('symfony', new \DateTimeImmutable());
 
-        $found = $this->repository->find($game->getId());
+        $found = $this->repository->find($game->id);
 
         $this->assertNull($found);
     }

@@ -9,7 +9,9 @@ use Symfony\Component\Uid\Uuid;
 
 interface GameInterface
 {
-    public function getId(): Uuid;
+    public Uuid $id {
+        get;
+    }
 
     public function guess(string $letter): void;
 
@@ -36,4 +38,8 @@ interface GameInterface
     public function useHint(): void;
 
     public function getHintUsage(): bool;
+
+    public function getStartedAt(): \DateTimeImmutable;
+
+    public function startedSince(ClockInterface $clock): \DateInterval;
 }

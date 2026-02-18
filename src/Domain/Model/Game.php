@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Model;
 
 use App\Domain\Enum\GameStatus;
+use App\Domain\Interface\ClockInterface;
 use App\Domain\Interface\GameInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Uid\Uuid;
@@ -12,7 +13,11 @@ use Symfony\Component\Uid\Uuid;
 #[AsAlias(GameInterface::class)]
 class Game implements GameInterface
 {
-    private Uuid $id;
+    public Uuid $id {
+        get {
+            return $this->id;
+        }
+    }
 
     /**
      * @param list<string> $guessedLetters
@@ -20,6 +25,7 @@ class Game implements GameInterface
      */
     public function __construct(
         private string $wordToGuess,
+        private \DateTimeImmutable $startedAt,
         private array $guessedLetters = [],
         private array $usedLetters = [],
         private int $tries = 0,
@@ -28,11 +34,6 @@ class Game implements GameInterface
         ?Uuid $id = null,
     ) {
         $this->id = $id ?? Uuid::v7();
-    }
-
-    public function getId(): Uuid
-    {
-        return $this->id;
     }
 
     public function getWordToGuess(): string
@@ -116,6 +117,16 @@ class Game implements GameInterface
     public function getHintUsage(): bool
     {
         return $this->hintUsed;
+    }
+
+    public function getStartedAt(): \DateTimeImmutable
+    {
+        return $this->startedAt;
+    }
+
+    public function startedSince(ClockInterface $clock): \DateInterval
+    {
+        return $clock->now()->diff($this->startedAt);
     }
 
     public function useHint(): void

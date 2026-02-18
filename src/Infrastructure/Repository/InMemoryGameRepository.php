@@ -21,7 +21,7 @@ class InMemoryGameRepository implements GameRepositoryInterface
 
     public function save(GameInterface $game): void
     {
-        $this->games[$game->getId()->toString()] = $game;
+        $this->games[$game->id->toString()] = $game;
     }
 
     /** @return list<GameInterface> */

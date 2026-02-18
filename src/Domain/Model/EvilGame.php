@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Domain\Model;
 
 use App\Domain\Enum\GameStatus;
+use App\Domain\Interface\ClockInterface;
 use App\Domain\Interface\GameInterface;
 use Symfony\Component\Uid\Uuid;
 
 class EvilGame implements GameInterface
 {
-    private Uuid $id;
+    public Uuid $id {
+        get {
+            return $this->id;
+        }
+    }
     /** @var list<string> */
     private array $candidates;
     /** @var list<string> */
@@ -28,6 +33,7 @@ class EvilGame implements GameInterface
      */
     public function __construct(
         array $candidates,
+        private \DateTimeImmutable $startedAt,
         int $maxTries = 6,
         array $guessedLetters = [],
         array $usedLetters = [],
@@ -42,11 +48,6 @@ class EvilGame implements GameInterface
         $this->usedLetters = $usedLetters;
         $this->tries = $tries;
         $this->hintUsed = $hintUsed;
-    }
-
-    public function getId(): Uuid
-    {
-        return $this->id;
     }
 
     /** @return list<string> */
@@ -160,6 +161,16 @@ class EvilGame implements GameInterface
     public function getHintUsage(): bool
     {
         return $this->hintUsed;
+    }
+
+    public function getStartedAt(): \DateTimeImmutable
+    {
+        return $this->startedAt;
+    }
+
+    public function startedSince(ClockInterface $clock): \DateInterval
+    {
+        return $clock->now()->diff($this->startedAt);
     }
 
     public function useHint(): void

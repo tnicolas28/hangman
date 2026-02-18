@@ -2,51 +2,49 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Application\Service;
+namespace App\Tests\Application\Handler;
 
-use App\Application\Service\GameEngine;
+use App\Application\Handler\CreateGameCommand;
+use App\Application\Handler\CreateGameHandler;
+use App\Application\Handler\GuessLetterCommand;
+use App\Application\Handler\GuessLetterHandler;
 use App\Domain\Enum\GameStatus;
 use App\Domain\Interface\GameNotifierInterface;
-use App\Domain\Model\Game;
 use App\Infrastructure\Repository\InMemoryGameRepository;
 use App\Infrastructure\Service\ConstantWordProvider;
+use App\Infrastructure\Service\SystemClock;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
-class GameEngineTest extends TestCase
+class GuessLetterHandlerTest extends TestCase
 {
-    private ConstantWordProvider $dictionary;
-    private InMemoryGameRepository $gameRepository;
+    private CreateGameHandler $createGameHandler;
+    private GuessLetterHandler $handler;
     private GameNotifierInterface&Stub $notifier;
-    private GameEngine $engine;
 
     protected function setUp(): void
     {
-        $this->dictionary = new ConstantWordProvider();
-        $this->gameRepository = new InMemoryGameRepository();
+        $repository = new InMemoryGameRepository();
         $this->notifier = $this->createStub(GameNotifierInterface::class);
 
-        $this->engine = new GameEngine(
-            $this->dictionary,
-            $this->gameRepository,
+        $this->createGameHandler = new CreateGameHandler(
+            new ConstantWordProvider(),
+            $repository,
+            new SystemClock(),
+        );
+
+        $this->handler = new GuessLetterHandler(
+            $repository,
             $this->notifier,
         );
     }
 
-    public function testCreateNewGame(): void
-    {
-        $game = $this->engine->createGame('normal');
-
-        $this->assertInstanceOf(Game::class, $game);
-        $this->assertSame('ruisseau', $game->getWordToGuess());
-    }
-
     public function testGuessWrongLetterIncrementsTries(): void
     {
-        $game = $this->engine->createGame('normal');
+        $game = ($this->createGameHandler)(new CreateGameCommand('normal'));
 
-        $this->engine->guess($game, 'z');
+        ($this->handler)(new GuessLetterCommand($game, 'z'));
 
         $this->assertSame(1, $game->getTries());
         $this->assertContains('z', $game->getUsedLetters());
@@ -54,9 +52,9 @@ class GameEngineTest extends TestCase
 
     public function testGuessCorrectLetterReturnsTrue(): void
     {
-        $game = $this->engine->createGame('normal');
+        $game = ($this->createGameHandler)(new CreateGameCommand('normal'));
 
-        $this->engine->guess($game, 'r');
+        ($this->handler)(new GuessLetterCommand($game, 'r'));
 
         $this->assertSame(0, $game->getTries());
         $this->assertContains('r', $game->getGuessedLetters());
@@ -64,7 +62,7 @@ class GameEngineTest extends TestCase
 
     public function testWinGame(): void
     {
-        $game = $this->engine->createGame('normal');
+        $game = ($this->createGameHandler)(new CreateGameCommand('normal'));
 
         foreach (\str_split('ruisseau') as $letter) {
             $game->guess($letter);
@@ -73,20 +71,13 @@ class GameEngineTest extends TestCase
         $this->assertSame(GameStatus::Won, $game->getStatus());
     }
 
-    public function testCorrectWord(): void
-    {
-        $game = $this->engine->createGame('normal');
-
-        $this->assertSame('ruisseau', $game->getWordToGuess());
-    }
-
     #[DataProvider('guessScenarios')]
     public function testGuessedLetters(
         string $letter,
         bool $expectedFound,
     ): void {
-        $game = $this->engine->createGame('normal');
-        $this->engine->guess($game, $letter);
+        $game = ($this->createGameHandler)(new CreateGameCommand('normal'));
+        ($this->handler)(new GuessLetterCommand($game, $letter));
 
         if ($expectedFound) {
             $this->assertContains(\strtolower($letter), $game->getGuessedLetters());

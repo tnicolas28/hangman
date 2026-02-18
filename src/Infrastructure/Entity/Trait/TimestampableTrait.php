@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Entity\Trait;
 
-use Doctrine\ORM\Mapping as ORM;
-
 trait TimestampableTrait
 {
-    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\PrePersist]
-    public function initCreatedAt(): void
+    public function initCreatedAt(\DateTimeImmutable $now): void
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = $now;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -24,9 +19,8 @@ trait TimestampableTrait
         return $this->createdAt;
     }
 
-    #[ORM\PreUpdate]
-    public function updateUpdatedAt(): void
+    public function updateUpdatedAt(\DateTimeImmutable $now): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = $now;
     }
 }
